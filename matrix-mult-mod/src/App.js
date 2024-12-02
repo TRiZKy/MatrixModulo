@@ -9,6 +9,7 @@ import {
     Paper,
     ToggleButtonGroup,
     ToggleButton,
+    Alert,
 } from "@mui/material";
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
     ]);
     const [modulo, setModulo] = useState(7);
     const [result, setResult] = useState([]);
+    const [error, setError] = useState("");
 
     const updateMatrixDimensions = (matrixSetter, dimension) => {
         const [rows, cols] = dimension.split("x").map(Number);
@@ -42,7 +44,15 @@ const App = () => {
         const modMult = (A, B, mod) => {
             const rowsA = A.length,
                 colsA = A[0].length,
+                rowsB = B.length,
                 colsB = B[0].length;
+
+            if (colsA !== rowsB) {
+                throw new Error(
+                    `Invalid matrix multiplication: A is ${rowsA}x${colsA}, B is ${rowsB}x${colsB}.`
+                );
+            }
+
             const result = Array(rowsA)
                 .fill(0)
                 .map(() => Array(colsB).fill(0));
@@ -58,8 +68,14 @@ const App = () => {
             return result;
         };
 
-        const output = modMult(matrixA, matrixB, modulo);
-        setResult(output);
+        try {
+            setError(""); // Reset error
+            const output = modMult(matrixA, matrixB, modulo);
+            setResult(output);
+        } catch (err) {
+            setError(err.message);
+            setResult([]);
+        }
     };
 
     const renderMatrix = (matrix, setMatrix) => (
@@ -125,7 +141,7 @@ const App = () => {
                                 sx={{ marginBottom: "1rem" }}
                             >
                                 <ToggleButton value="2x2">2x2</ToggleButton>
-                                <ToggleButton value="2x1">2x1</ToggleButton>
+                                <ToggleButton value="1x2">1x2</ToggleButton>
                             </ToggleButtonGroup>
                             {renderMatrix(matrixA, setMatrixA)}
                         </Paper>
@@ -178,6 +194,12 @@ const App = () => {
                         Calculate
                     </Button>
                 </Box>
+                {/* Error Display */}
+                {error && (
+                    <Alert severity="error" sx={{ marginBottom: "1rem" }}>
+                        {error}
+                    </Alert>
+                )}
                 {/* Result */}
                 {result.length > 0 && (
                     <Box>
